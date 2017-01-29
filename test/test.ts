@@ -48,21 +48,20 @@ const torrentFile = { info:
 const info = torrentFile.info;
 // Prep the buffers:
 let pieces = torrentFile.pieces.join('');
-console.log('pieces: ',pieces);
 let pieceBuf = Buffer.from(pieces, "hex");
-console.log('pieceBuf: ', pieceBuf);
 
 let name = torrentFile.name;
 let nameBuf = Buffer.from(name);
-console.log('nameBuf: ', nameBuf);
 
 info.name = nameBuf;
 info.pieces = pieceBuf;
+console.log(info['piece length']);
+torrentFile.info = info;
 // Use bencoding to encode the whole infohash
 torrentFile.infoBuffer = Buffer.from(bencode.encode(info));
-console.log('infoBuffer', torrentFile.infoBuffer);
 torrentFile.infoHashBuffer = Buffer.from(torrentFile.infoHash, "hex");
-console.log('infoHashBuffer', torrentFile.infoHashBuffer);
+
+console.log('full torrent file:', torrentFile);
 
 const infoBuf = bencode.encode(torrentFile);
 
@@ -81,9 +80,6 @@ let message = {'msg_type': 1, 'piece': 0};
 const messageBen = bencode.encode(message);
 
 const completeMessage = Buffer.concat([messageBen, infoBuf]);
-console.log(completeMessage);
-console.log(messageBen);
-console.log(infoBuf);
 
 // ut_metadata tests:
 test("ut_metadata testings..", (t) => {

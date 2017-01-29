@@ -9,9 +9,9 @@
 
 ### Extensions for The Bittorent Protocol
 
-PEX (PEer eXchange) Protocol [BEP_0011]
-Extension Protocol [BEP_0010]
-DHT (Distrubuted Hash Table) Protocol [BEP_0005]
+* PEX (PEer eXchange) Protocol [BEP_0011]
+* Extension Protocol [BEP_0010]
+* DHT (Distrubuted Hash Table) Protocol [BEP_0005]
 
 ## Install
 

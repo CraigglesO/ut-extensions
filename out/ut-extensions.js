@@ -19,7 +19,7 @@ class UTmetadata extends events_1.EventEmitter {
         const self = this;
         let str = payload.toString(), trailerIndex = str.indexOf("ee") + 2, dict = bencode.decode(str), trailer = payload.slice(trailerIndex);
         console.log('dictionary:', dict);
-        console.log('message', trailer);
+        console.log('message', bencode.decode(trailer));
         console.log('message length', trailer.length);
         console.log('metadatasize: ', self.metaDataSize);
         switch (dict.msg_type) {
@@ -31,9 +31,6 @@ class UTmetadata extends events_1.EventEmitter {
                 console.log('update hash');
                 if (++self.next_piece === self.piece_count) {
                     console.log('finished');
-                    console.log(self.pieceHash.digest("hex"));
-                    let torrent = parseMetaData(Buffer.concat(self.pieces));
-                    self.emit("metadata", torrent);
                     if (self.pieceHash.digest("hex") === self.infoHash) {
                         console.log('bad hash?');
                         let torrent = parseMetaData(Buffer.concat(self.pieces));

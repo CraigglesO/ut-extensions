@@ -60,7 +60,7 @@ class UTmetadata extends EventEmitter {
         trailer      = payload.slice(trailerIndex);
 
     console.log('dictionary:', dict);
-    console.log('message', trailer);
+    console.log('message', bencode.decode(trailer) );
     console.log('message length', trailer.length);
     console.log('metadatasize: ', self.metaDataSize);
     switch (dict.msg_type) {
@@ -75,9 +75,6 @@ class UTmetadata extends EventEmitter {
         // Check that we have all the pieces
         if ( ++self.next_piece === self.piece_count ) {
           console.log('finished');
-          console.log(self.pieceHash.digest("hex"));
-          let torrent = parseMetaData( Buffer.concat(self.pieces) );
-          self.emit("metadata", torrent);
           // Check that the hash matches the infoHash we started with
           if ( self.pieceHash.digest("hex") === self.infoHash ) {
             console.log('bad hash?');
