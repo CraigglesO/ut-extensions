@@ -1,4 +1,4 @@
-# ut-extensions [![travis][travis-image]][travis-url] [![npm][npm-image]][npm-url] [![downloads][downloads-image]][downloads-url]
+# ut-extensions [![travis][travis-image]][travis-url] [![npm][npm-image]][npm-url] [![Code Climate](https://codeclimate.com/github/CraigglesO/ut-extensions/badges/gpa.svg)](https://codeclimate.com/github/CraigglesO/ut-extensions) [![downloads][downloads-image]][downloads-url]
 
 [travis-image]: https://travis-ci.org/CraigglesO/ut-extensions.svg?branch=master
 [travis-url]: https://travis-ci.org/CraigglesO/ut-extensions
@@ -7,9 +7,11 @@
 [downloads-image]: https://img.shields.io/npm/dm/ut-extensions.svg
 [downloads-url]: https://npmjs.org/package/ut-extensions
 
-### BASIC_INFO_OF_PROJECT_GOES_HERE
+### Extensions for The Bittorent Protocol
 
-INFORMATION_GOES_HERE
+PEX (PEer eXchange) Protocol [BEP_0011]
+Extension Protocol [BEP_0010]
+DHT (Distrubuted Hash Table) Protocol [BEP_0005]
 
 ## Install
 
@@ -18,6 +20,7 @@ npm install ut-extensions
 ```
 
 ## Usage
+
 ``` typescript
 import { UTpex, UTmetadata } from "ut-extensions"
 
