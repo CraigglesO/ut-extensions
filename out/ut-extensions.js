@@ -1,7 +1,7 @@
 "use strict";
 const events_1 = require("events");
 const crypto_1 = require("crypto");
-const bencode = require("bencode"), compact2string = require("compact2string"), string2compact = require('string2compact'), PACKET_SIZE = 16384, UT_PEX = 1, UT_METADATA = 2;
+const bencode = require("bencode"), compact2string = require("compact2string"), string2compact = require("string2compact"), PACKET_SIZE = 16384, UT_PEX = 1, UT_METADATA = 2;
 class UTmetadata extends events_1.EventEmitter {
     constructor(metaDataSize, infoHash) {
         super();

@@ -4,7 +4,7 @@ import { Hash, createHash } from "crypto";
 
 const bencode        = require("bencode"),
       compact2string = require("compact2string"),
-      string2compact = require('string2compact'),
+      string2compact = require("string2compact"),
       PACKET_SIZE    = 16384,
       UT_PEX         = 1,
       UT_METADATA    = 2;
@@ -67,6 +67,7 @@ class UTmetadata extends EventEmitter {
         // REQUEST {'msg_type': 0, 'piece': 0}
         break;
       case 1:
+        // RESPONCE {'msg_type': 1, 'piece': 0}
         self.pieces[dict.piece] = trailer;
         // update the hash
         self.pieceHash.update(trailer);
