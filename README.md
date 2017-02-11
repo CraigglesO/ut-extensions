@@ -81,10 +81,11 @@ pex.on("pex_dropped6", (peers) => {
   // dropped ip_v6 peers
 });
 
-
+// Add "add" peers to the list
 pex.addPeer (peers: Array<string>);
 pex.addPeer6 (peers: Array<string>);
 
+// Add "drop" peers to the list
 pex.dropPeer (peers: Array<string>);
 pex.dropPeer6 (peers: Array<string>);
 
