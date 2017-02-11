@@ -124,6 +124,7 @@ interface Peers {
 }
 
 class UTpex extends EventEmitter {
+  ID:       Array<string>;
   added:    Array<string>;
   added6:   Array<string>;
   dropped:  Array<string>;
@@ -133,6 +134,8 @@ class UTpex extends EventEmitter {
     if (!(this instanceof UTpex))
       return new UTpex();
     const self = this;
+
+    self.ID     = null;
 
     self.added    = [];
     self.added6   = [];
@@ -164,8 +167,14 @@ class UTpex extends EventEmitter {
     }
   }
 
-  compactPeers(emitType: string, peerDict: any) {
+  myID(id: string) {
+    this.ID = (id.split(":")[0]).split(".");
+  }
+
+  compactPeers(emitType: string, peerDict: Peers) {
     let peers = compact2string.multi( peerDict );
+    if (this.ID)
+      peers   = CanonicalPeerPriority(this.ID, peers);
     this.emit(emitType, peers);
   }
 
@@ -189,8 +198,17 @@ class UTpex extends EventEmitter {
 }
 
 // BEP_0040
-function CanonicalPeerPriority () {
-
+function CanonicalPeerPriority (myID: Array<string>, peers: Array<string>): Array<string> {
+  let obj    = {};
+  let result = [];
+  peers.forEach((peer) => {
+    let p = (peer.split(":")[0]).split(".")[0];
+    let dif = parseInt(p) ^ parseInt(myID[0]);
+    obj[peer] = dif;
+  });
+  let sorted = Object.keys(obj).sort( function(a, b) { return obj[a] - obj[b]; });
+  sorted.forEach((peer) => { result.push(peer); });
+  return result;
 }
 
 function parseMetaData (data): Torrent {

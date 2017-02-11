@@ -51,6 +51,7 @@ class UTpex extends events_1.EventEmitter {
         if (!(this instanceof UTpex))
             return new UTpex();
         const self = this;
+        self.ID = null;
         self.added = [];
         self.added6 = [];
         self.dropped = [];
@@ -78,8 +79,13 @@ class UTpex extends events_1.EventEmitter {
             self.compactPeers("pex_dropped6", dict.dropped6);
         }
     }
+    myID(id) {
+        this.ID = (id.split(":")[0]).split(".");
+    }
     compactPeers(emitType, peerDict) {
         let peers = compact2string.multi(peerDict);
+        if (this.ID)
+            peers = CanonicalPeerPriority(this.ID, peers);
         this.emit(emitType, peers);
     }
     addPeer(peers) {
@@ -100,7 +106,17 @@ class UTpex extends events_1.EventEmitter {
     }
 }
 exports.UTpex = UTpex;
-function CanonicalPeerPriority() {
+function CanonicalPeerPriority(myID, peers) {
+    let obj = {};
+    let result = [];
+    peers.forEach((peer) => {
+        let p = (peer.split(":")[0]).split(".")[0];
+        let dif = parseInt(p) ^ parseInt(myID[0]);
+        obj[peer] = dif;
+    });
+    let sorted = Object.keys(obj).sort(function (a, b) { return obj[a] - obj[b]; });
+    sorted.forEach((peer) => { result.push(peer); });
+    return result;
 }
 function parseMetaData(data) {
     let t = bencode.decode(data);

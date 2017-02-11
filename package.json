@@ -1,6 +1,6 @@
 {
   "name": "ut-extensions",
-  "version": "0.2.4",
+  "version": "0.5.1",
   "description": "Extensions for The Bittorent Protocol",
   "main": "./out/ut-extensions.js",
   "scripts": {

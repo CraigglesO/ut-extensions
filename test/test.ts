@@ -2,7 +2,8 @@ import * as test from "blue-tape";
 import { UTmetadata, UTpex } from "../ut-extensions";
 import { Buffer } from "buffer";
 
-const bencode = require("bencode");
+const bencode        = require("bencode"),
+      string2compact = require("string2compact");
 
 
 const magnetLink = "magnet:?xt=urn:btih:74416fe776ca02ca2da20f686fed835e4dcfe84d&dn=Screen+Shot+2017-01-21+at+8.25.15+AM.png&tr=udp%3A%2F%2F0.0.0.0%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com";
@@ -116,4 +117,45 @@ test("ut_metadata testings..", (t) => {
     t.end();
   }, 2000);
 
+});
+
+test("UT_PEX tests", (t) => {
+  t.plan(2);
+
+  let ut_pex = new UTpex();
+
+  ut_pex.myID("76.256.2.70:1337");
+
+  ut_pex.on("pex_added", (peers) => {
+    t.true( true, "testing pex_added responce");
+    t.equal(JSON.stringify(peers), JSON.stringify([ "65.156.3.75:2000", "100.56.58.99:28525", "10.10.10.5:128" ]), "testing Canonical Peer Priority");
+  });
+
+  ut_pex.on("pex_dropped", (peers) => {
+    t.true( true, "testing pex_dropped responce");
+  });
+
+  let peers = [
+    "10.10.10.5:128",
+    "100.56.58.99:28525",
+    "65.156.3.75:2000"
+  ];
+
+  let obj = {
+    "added": string2compact(peers),
+    "added.f": null,
+    "added6": null,
+    "added6.f": null,
+    "dropped": null,
+    "dropped6": null
+  };
+
+  let ben = bencode.encode(obj);
+
+  ut_pex._message(ben);
+
+
+  setTimeout(() => {
+    t.end();
+  }, 2000);
 });
