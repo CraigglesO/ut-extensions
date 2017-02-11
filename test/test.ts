@@ -95,7 +95,7 @@ test("ut_metadata testings..", (t) => {
 
   ut_metadata.on("next", (index) => {
     t.equal(index, 0, "Bad data, so it should try again");
-  })
+  });
 
   // Check object is ready to go...
   t.equal(ut_metadata.infoHash, torrentFile.infoHash, "checking proper variable storage");
