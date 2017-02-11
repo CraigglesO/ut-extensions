@@ -1,10 +1,13 @@
 import { EventEmitter } from "events";
 import { Hash, createHash } from "crypto";
 
-const bencode     = require("bencode"),
-      PACKET_SIZE = 16384,
-      UT_PEX      = 1,
-      UT_METADATA = 2;
+
+const bencode        = require("bencode"),
+      compact2string = require("compact2string"),
+      string2compact = require('string2compact'),
+      PACKET_SIZE    = 16384,
+      UT_PEX         = 1,
+      UT_METADATA    = 2;
 
 
 interface File {
@@ -16,9 +19,9 @@ interface File {
 
 interface Torrent {
   info: {
-    name:           string;
-    "piece length": number;
-    pieces:         Array<string>;
+    name:           string
+    "piece length": number
+    pieces:         Array<string>
   };
   name:            string;
   files:           Array<File>;
@@ -59,10 +62,6 @@ class UTmetadata extends EventEmitter {
         dict         = bencode.decode( str ),
         trailer      = payload.slice(trailerIndex);
 
-    console.log('dictionary:', dict);
-    console.log('message', bencode.decode(trailer) );
-    console.log('message length', trailer.length);
-    console.log('metadatasize: ', self.metaDataSize);
     switch (dict.msg_type) {
       case 0:
         // REQUEST {'msg_type': 0, 'piece': 0}
@@ -71,13 +70,10 @@ class UTmetadata extends EventEmitter {
         self.pieces[dict.piece] = trailer;
         // update the hash
         self.pieceHash.update(trailer);
-        console.log('update hash');
         // Check that we have all the pieces
         if ( ++self.next_piece === self.piece_count ) {
-          console.log('finished');
           // Check that the hash matches the infoHash we started with
           if ( self.pieceHash.digest("hex") === self.infoHash ) {
-            console.log('bad hash?');
             // Parse the metadata and send it off.
             let torrent = parseMetaData( Buffer.concat(self.pieces) );
             self.emit("metadata", torrent);
@@ -101,29 +97,83 @@ class UTmetadata extends EventEmitter {
 }
 
 // BEP_0011
+
+/*********************************************************************
+ * PEX messages are bencoded dictionaries with the following keys:
+ * 'added'     : array of peers met since last PEX message
+ * 'added.f'   : array of flags per peer
+ * '0x01'     : peer prefers encryption
+ * '0x02'     : peer is seeder
+ * '0x04'     : supports uTP
+ * '0x08'     : peer indicated ut_holepunch support in extension handshake
+ * '0x10'     : outgoing connection, peer is reachable
+ * 'dropped'   : array of peers locally dropped from swarm since last PEX message
+ * 'added6'    : ipv6 version of 'added'
+ * 'added6.f'  : ipv6 version of 'added.f'
+ * 'dropped.f' : ipv6 version of 'dropped'
+ *********************************************************************/
+
 class UTpex extends EventEmitter {
+  added:    Array<string>;
+  added6:   Array<string>;
+  dropped:  Array<string>;
+  dropped6: Array<string>;
   constructor () {
     super();
     if (!(this instanceof UTpex))
       return new UTpex();
+    const self = this;
+
+    self.added    = [];
+    self.added6   = [];
+    self.dropped  = [];
+    self.dropped6 = [];
   }
 
-  _message (payload: Buffer) { return; }
+  _message (payload: Buffer) {
+    const self = this;
+    let dict   = null;
+    try {
+      dict = bencode.decode( payload );
+    } catch (e) {
+      return;
+    }
 
-  start () {
+    if (dict.added) {
+      let peers = compact2string.multi( dict.added );
+      self.emit("pex_added", peers);
+    }
+    if (dict.added6) {
+      let peers = compact2string.multi( dict.added );
+      self.emit("pex_added6", peers);
+    }
 
+    if (dict.dropped) {
+      let peers = compact2string.multi( dict.dropped );
+      self.emit("pex_dropped", peers);
+    }
+    if (dict.dropped6) {
+      let peers = compact2string.multi( dict.dropped );
+      self.emit("pex_dropped6", peers);
+    }
   }
 
-  stop () {
-
+  addPeer (peers: Array<string>) {
+    let p = string2compact(peers);
+    this.added.push(p);
+  }
+  addPeer6 (peers: Array<string>) {
+    let p = string2compact(peers);
+    this.added6.push(p);
   }
 
-  addPeer () {
-
+  dropPeer (peers: Array<string>) {
+    let p = string2compact(peers);
+    this.dropped.push(p);
   }
-
-  removePeer () {
-
+  dropPeer6 (peers: Array<string>) {
+    let p = string2compact(peers);
+    this.dropped6.push(p);
   }
 }
 

@@ -13,18 +13,80 @@
 * Extension Protocol [BEP_0010]
 * DHT (Distrubuted Hash Table) Protocol [BEP_0005]
 
+
 ## Install
 
-``` typescript
+``` javascript
 npm install ut-extensions
 ```
 
 ## Usage
 
-``` typescript
-import { UTpex, UTmetadata } from "ut-extensions"
+**UTmetadata**
 
-EXAMPLE_USAGE_GOES_HERE
+``` javascript
+new UTmetadata(metaDataSize: number, infoHash: string);
+```
+
+* metaDataSize - total size of the torrent data
+* infoHash     - info_hash of the torrent to be downloaded
+
+``` javascript
+import { UTmetadata } from "ut-extensions"
+
+// create a metadata instance
+const metadata = new UTmetadata(18716, "294150cb4beb7585d89d5faf447121fee5360d82");
+
+// Incoming metadata Buffer goes here
+metadata._message("insert_Buffer_message_here");
+
+metadata.on("metadata", (metadata) => {
+  // metadata is a completed torrent file
+});
+
+metadata.on("next", (index) => {
+  //index specifies which metadata piece to request next
+});
+
+```
+
+**UTpex**
+
+``` javascript
+new UTpex();
+```
+
+* no inputs
+
+``` javascript
+import { UTpex } from "ut-extensions"
+
+// Create a pex instance
+const pex = new UTpex();
+
+// Incoming pex Buffer goes here
+pex._message("insert_Buffer_message_here");
+
+pex.on("pex_added", (peers) => {
+  // new added ip_v4 peers
+});
+pex.on("pex_added6", (peers) => {
+  // new added ip_v6 peers
+});
+
+pex.on("pex_dropped", (peers) => {
+  // dropped ip_v4 peers
+});
+pex.on("pex_dropped6", (peers) => {
+  // dropped ip_v6 peers
+});
+
+
+pex.addPeer (peers: Array<string>);
+pex.addPeer6 (peers: Array<string>);
+
+pex.dropPeer (peers: Array<string>);
+pex.dropPeer6 (peers: Array<string>);
 
 ```
 

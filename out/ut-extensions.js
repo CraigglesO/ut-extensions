@@ -1,7 +1,7 @@
 "use strict";
 const events_1 = require("events");
 const crypto_1 = require("crypto");
-const bencode = require("bencode"), PACKET_SIZE = 16384, UT_PEX = 1, UT_METADATA = 2;
+const bencode = require("bencode"), compact2string = require("compact2string"), string2compact = require('string2compact'), PACKET_SIZE = 16384, UT_PEX = 1, UT_METADATA = 2;
 class UTmetadata extends events_1.EventEmitter {
     constructor(metaDataSize, infoHash) {
         super();
@@ -18,21 +18,14 @@ class UTmetadata extends events_1.EventEmitter {
     _message(payload) {
         const self = this;
         let str = payload.toString(), trailerIndex = str.indexOf("ee") + 2, dict = bencode.decode(str), trailer = payload.slice(trailerIndex);
-        console.log('dictionary:', dict);
-        console.log('message', bencode.decode(trailer));
-        console.log('message length', trailer.length);
-        console.log('metadatasize: ', self.metaDataSize);
         switch (dict.msg_type) {
             case 0:
                 break;
             case 1:
                 self.pieces[dict.piece] = trailer;
                 self.pieceHash.update(trailer);
-                console.log('update hash');
                 if (++self.next_piece === self.piece_count) {
-                    console.log('finished');
                     if (self.pieceHash.digest("hex") === self.infoHash) {
-                        console.log('bad hash?');
                         let torrent = parseMetaData(Buffer.concat(self.pieces));
                         self.emit("metadata", torrent);
                     }
@@ -57,15 +50,53 @@ class UTpex extends events_1.EventEmitter {
         super();
         if (!(this instanceof UTpex))
             return new UTpex();
+        const self = this;
+        self.added = [];
+        self.added6 = [];
+        self.dropped = [];
+        self.dropped6 = [];
     }
-    _message(payload) { return; }
-    start() {
+    _message(payload) {
+        const self = this;
+        let dict = null;
+        try {
+            dict = bencode.decode(payload);
+        }
+        catch (e) {
+            return;
+        }
+        if (dict.added) {
+            let peers = compact2string.multi(dict.added);
+            self.emit("pex_added", peers);
+        }
+        if (dict.added6) {
+            let peers = compact2string.multi(dict.added);
+            self.emit("pex_added6", peers);
+        }
+        if (dict.dropped) {
+            let peers = compact2string.multi(dict.dropped);
+            self.emit("pex_dropped", peers);
+        }
+        if (dict.dropped6) {
+            let peers = compact2string.multi(dict.dropped);
+            self.emit("pex_dropped6", peers);
+        }
     }
-    stop() {
+    addPeer(peers) {
+        let p = string2compact(peers);
+        this.added.push(p);
     }
-    addPeer() {
+    addPeer6(peers) {
+        let p = string2compact(peers);
+        this.added6.push(p);
     }
-    removePeer() {
+    dropPeer(peers) {
+        let p = string2compact(peers);
+        this.dropped.push(p);
+    }
+    dropPeer6(peers) {
+        let p = string2compact(peers);
+        this.dropped6.push(p);
     }
 }
 exports.UTpex = UTpex;
