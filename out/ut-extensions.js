@@ -66,21 +66,21 @@ class UTpex extends events_1.EventEmitter {
             return;
         }
         if (dict.added) {
-            let peers = compact2string.multi(dict.added);
-            self.emit("pex_added", peers);
+            self.compactPeers("pex_added", dict.added);
         }
         if (dict.added6) {
-            let peers = compact2string.multi(dict.added);
-            self.emit("pex_added6", peers);
+            self.compactPeers("pex_added6", dict.added6);
         }
         if (dict.dropped) {
-            let peers = compact2string.multi(dict.dropped);
-            self.emit("pex_dropped", peers);
+            self.compactPeers("pex_dropped", dict.dropped);
         }
         if (dict.dropped6) {
-            let peers = compact2string.multi(dict.dropped);
-            self.emit("pex_dropped6", peers);
+            self.compactPeers("pex_dropped6", dict.dropped6);
         }
+    }
+    compactPeers(emitType, peerDict) {
+        let peers = compact2string.multi(peerDict);
+        this.emit(emitType, peers);
     }
     addPeer(peers) {
         let p = string2compact(peers);

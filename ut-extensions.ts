@@ -103,16 +103,25 @@ class UTmetadata extends EventEmitter {
  * PEX messages are bencoded dictionaries with the following keys:
  * 'added'     : array of peers met since last PEX message
  * 'added.f'   : array of flags per peer
- * '0x01'     : peer prefers encryption
- * '0x02'     : peer is seeder
- * '0x04'     : supports uTP
- * '0x08'     : peer indicated ut_holepunch support in extension handshake
- * '0x10'     : outgoing connection, peer is reachable
- * 'dropped'   : array of peers locally dropped from swarm since last PEX message
+ * '0x01'      : peer prefers encryption
+ * '0x02'      : peer is seeder
+ * '0x04'      : supports uTP
+ * '0x08'      : peer indicated ut_holepunch support in extension handshake
+ * '0x10'      : outgoing connection, peer is reachable
  * 'added6'    : ipv6 version of 'added'
  * 'added6.f'  : ipv6 version of 'added.f'
- * 'dropped.f' : ipv6 version of 'dropped'
+ * 'dropped'   : array of peers locally dropped from swarm since last PEX message
+ * 'dropped6'  : ipv6 version of 'dropped'
  *********************************************************************/
+
+interface Peers {
+  "added": Buffer;
+  "added.f": Buffer;
+  "added6": Buffer;
+  "added6.f": Buffer;
+  "dropped": Buffer;
+  "dropped6": Buffer;
+}
 
 class UTpex extends EventEmitter {
   added:    Array<string>;
@@ -141,22 +150,23 @@ class UTpex extends EventEmitter {
     }
 
     if (dict.added) {
-      let peers = compact2string.multi( dict.added );
-      self.emit("pex_added", peers);
+      self.compactPeers("pex_added", dict.added);
     }
     if (dict.added6) {
-      let peers = compact2string.multi( dict.added );
-      self.emit("pex_added6", peers);
+      self.compactPeers("pex_added6", dict.added6);
     }
 
     if (dict.dropped) {
-      let peers = compact2string.multi( dict.dropped );
-      self.emit("pex_dropped", peers);
+      self.compactPeers("pex_dropped", dict.dropped);
     }
     if (dict.dropped6) {
-      let peers = compact2string.multi( dict.dropped );
-      self.emit("pex_dropped6", peers);
+      self.compactPeers("pex_dropped6", dict.dropped6);
     }
+  }
+
+  compactPeers(emitType: string, peerDict: any) {
+    let peers = compact2string.multi( peerDict );
+    this.emit(emitType, peers);
   }
 
   addPeer (peers: Array<string>) {
