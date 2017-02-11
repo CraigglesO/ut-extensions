@@ -1,5 +1,6 @@
-import { EventEmitter } from "events";
+import { EventEmitter }     from "events";
 import { Hash, createHash } from "crypto";
+import * as _               from "lodash";
 
 
 const bencode        = require("bencode"),
@@ -178,22 +179,46 @@ class UTpex extends EventEmitter {
     this.emit(emitType, peers);
   }
 
-  addPeer (peers: Array<string>) {
-    let p = string2compact(peers);
-    this.added.push(p);
+  addPeer(peers: Array<string>) {
+    this.added.push.apply(this.added, peers);
+    this.added = this.cleanup(this.added);
   }
-  addPeer6 (peers: Array<string>) {
-    let p = string2compact(peers);
-    this.added6.push(p);
+  addPeer6(peers: Array<string>) {
+    this.added6.push.apply(this.added6, peers);
+    this.added6 = this.cleanup(this.added6);
   }
 
-  dropPeer (peers: Array<string>) {
-    let p = string2compact(peers);
-    this.dropped.push(p);
+  dropPeer(peers: Array<string>) {
+    this.dropped.push.apply(this.dropped, peers);
+    this.dropped = this.cleanup(this.dropped);
   }
-  dropPeer6 (peers: Array<string>) {
-    let p = string2compact(peers);
-    this.dropped6.push(p);
+  dropPeer6(peers: Array<string>) {
+    this.dropped6.push.apply(this.dropped, peers);
+    this.dropped6 = this.cleanup(this.dropped6);
+  }
+
+  cleanup(peers: Array<string>): Array<string> {
+    let arr = _.uniq(peers);
+    while (arr.length > 50) {
+      arr.shift();
+    }
+    return arr;
+  }
+
+  prepMessage(): Peers {
+    const self = this;
+    let msg = {
+      "added":    string2compact(self.added),
+      "added.f":  Buffer.concat( self.added.map(() => { return new Buffer([0x02]); }) ),
+      "added6":   string2compact(self.added6),
+      "added6.f": new Buffer(0),
+      "dropped":  string2compact(self.dropped),
+      "dropped6": string2compact(self.dropped6)
+    };
+
+    let ben = bencode.encode(msg);
+
+    return ben;
   }
 }
 

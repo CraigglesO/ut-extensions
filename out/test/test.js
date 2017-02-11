@@ -2,7 +2,7 @@
 const test = require("blue-tape");
 const ut_extensions_1 = require("../ut-extensions");
 const buffer_1 = require("buffer");
-const bencode = require("bencode"), string2compact = require("string2compact");
+const bencode = require("bencode"), string2compact = require("string2compact"), compact2string = require("compact2string");
 const magnetLink = "magnet:?xt=urn:btih:74416fe776ca02ca2da20f686fed835e4dcfe84d&dn=Screen+Shot+2017-01-21+at+8.25.15+AM.png&tr=udp%3A%2F%2F0.0.0.0%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com";
 const torrentFile = { info: { length: 99525,
         name: null,
@@ -66,12 +66,10 @@ test("ut_metadata testings..", (t) => {
     t.true(Array.isArray(ut_metadata.pieces), "Piece count size");
     t.equal(ut_metadata.pieces.length, ut_metadata.piece_count, "Piece count size");
     ut_metadata._message(completeMessage);
-    setTimeout(() => {
-        t.end();
-    }, 2000);
+    t.end();
 });
 test("UT_PEX tests", (t) => {
-    t.plan(2);
+    t.plan(4);
     let ut_pex = new ut_extensions_1.UTpex();
     ut_pex.myID("76.256.2.70:1337");
     ut_pex.on("pex_added", (peers) => {
@@ -94,9 +92,15 @@ test("UT_PEX tests", (t) => {
         "dropped": null,
         "dropped6": null
     };
+    ut_pex.addPeer(["10.10.10.5:128"]);
+    ut_pex.addPeer(["10.10.10.5:128"]);
+    ut_pex.addPeer(["100.56.58.99:28525"]);
+    ut_pex.addPeer(["65.156.3.75:2000"]);
     let ben = bencode.encode(obj);
     ut_pex._message(ben);
-    setTimeout(() => {
-        t.end();
-    }, 2000);
+    let msg = ut_pex.prepMessage();
+    let ben_msg = bencode.decode(msg);
+    t.equal(ben_msg["added.f"].toString("hex"), (new buffer_1.Buffer([0x02, 0x02, 0x02])).toString("hex"), "Correct added.f");
+    t.equal(ben_msg["added"].toString("hex"), string2compact(peers).toString("hex"), "Correct added");
+    t.end();
 });

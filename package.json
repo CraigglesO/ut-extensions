@@ -1,6 +1,6 @@
 {
   "name": "ut-extensions",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Extensions for The Bittorent Protocol",
   "main": "./out/ut-extensions.js",
   "scripts": {
@@ -37,6 +37,7 @@
     "typings": "^2.1.0"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.52",
     "bencode": "^0.11.0",
     "compact2string": "^1.4.0",
     "string2compact": "^1.2.2"

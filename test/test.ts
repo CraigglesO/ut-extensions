@@ -3,7 +3,8 @@ import { UTmetadata, UTpex } from "../ut-extensions";
 import { Buffer } from "buffer";
 
 const bencode        = require("bencode"),
-      string2compact = require("string2compact");
+      string2compact = require("string2compact"),
+      compact2string = require("compact2string");
 
 
 const magnetLink = "magnet:?xt=urn:btih:74416fe776ca02ca2da20f686fed835e4dcfe84d&dn=Screen+Shot+2017-01-21+at+8.25.15+AM.png&tr=udp%3A%2F%2F0.0.0.0%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com";
@@ -113,14 +114,12 @@ test("ut_metadata testings..", (t) => {
   // Send a message, see if we get a responce:
   ut_metadata._message(completeMessage);
 
-  setTimeout(() => {
-    t.end();
-  }, 2000);
+  t.end();
 
 });
 
 test("UT_PEX tests", (t) => {
-  t.plan(2);
+  t.plan(4);
 
   let ut_pex = new UTpex();
 
@@ -150,12 +149,24 @@ test("UT_PEX tests", (t) => {
     "dropped6": null
   };
 
+  ut_pex.addPeer(["10.10.10.5:128"]);
+  ut_pex.addPeer(["10.10.10.5:128"]);     // duplicate to test sureity of uniqueness
+  ut_pex.addPeer(["100.56.58.99:28525"]);
+  ut_pex.addPeer(["65.156.3.75:2000"]);
+
+
   let ben = bencode.encode(obj);
 
   ut_pex._message(ben);
 
+  let msg = ut_pex.prepMessage();
 
-  setTimeout(() => {
-    t.end();
-  }, 2000);
+  let ben_msg = bencode.decode(msg);
+
+  t.equal(ben_msg["added.f"].toString("hex"), (new Buffer([0x02, 0x02, 0x02])).toString("hex"), "Correct added.f");
+
+  t.equal(ben_msg["added"].toString("hex"), string2compact(peers).toString("hex"), "Correct added");
+
+
+  t.end();
 });

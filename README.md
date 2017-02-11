@@ -90,6 +90,9 @@ pex.addPeer6 (peers: Array<string>);
 pex.dropPeer (peers: Array<string>);
 pex.dropPeer6 (peers: Array<string>);
 
+// Prepare a message to send out
+let msg = prepMessage();
+
 ```
 
 ## ISC License (Open Source Initiative)
