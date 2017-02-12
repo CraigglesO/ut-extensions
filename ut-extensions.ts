@@ -210,25 +210,23 @@ class UTpex extends EventEmitter {
   }
 
   addPeer(peers: Array<string>) {
-    this.added.push.apply(this.added, peers);
-    this.added = this.cleanup(this.added);
+    this.added = this.partition(this.added, peers);
   }
   addPeer6(peers: Array<string>) {
-    this.added6.push.apply(this.added6, peers);
-    this.added6 = this.cleanup(this.added6);
+    this.added6 = this.partition(this.added6, peers);
   }
 
   dropPeer(peers: Array<string>) {
-    this.dropped.push.apply(this.dropped, peers);
-    this.dropped = this.cleanup(this.dropped);
+    this.dropped = this.partition(this.dropped, peers);
   }
   dropPeer6(peers: Array<string>) {
-    this.dropped6.push.apply(this.dropped, peers);
-    this.dropped6 = this.cleanup(this.dropped6);
+    this.dropped6 = this.partition(this.dropped6, peers);
   }
 
-  cleanup(peers: Array<string>): Array<string> {
-    let arr = _.uniq(peers);
+  partition(which: Array<string>, peers: Array<string>): Array<string> {
+    which.push.apply(which, peers);
+
+    let arr = _.uniq(which);
     while (arr.length > 50) {
       arr.shift();
     }
@@ -258,7 +256,7 @@ function CanonicalPeerPriority (myID: Array<string>, peers: Array<string>): Arra
   let result = [];
   peers.forEach((peer) => {
     let p = (peer.split(":")[0]).split(".")[0];
-    let dif = parseInt(p) ^ parseInt(myID[0]);
+    let dif = parseInt(p, 10) ^ parseInt(myID[0], 10);
     obj[peer] = dif;
   });
   let sorted = Object.keys(obj).sort( function(a, b) { return obj[a] - obj[b]; });

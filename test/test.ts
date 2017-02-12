@@ -54,6 +54,12 @@ const messageR2         = { "msg_type": 0, "piece": 1 };
 const messageRben2      = bencode.encode(messageR2);
 const completeMessageR2 = Buffer.concat([messageRben2]);
 
+
+let str          = null,
+    trailerIndex = null,
+    dict         = null,
+    trailer      = null;
+
 // ut_metadata tests:
 
 test("ut_metadata receive", (t) => {
@@ -115,10 +121,10 @@ test("ut_metadata request WITH torrent info", (t) => {
   let ut_metadata = new UTmetadata(infoLength, torrentFile.infoHash, torrentFile.info);
 
   ut_metadata.on("meta_r", (payload) => {
-    let str          = payload.toString(),
-        trailerIndex = str.indexOf("ee") + 2,
-        dict         = bencode.decode( str ),
-        trailer      = payload.slice(trailerIndex);
+    str          = payload.toString();
+    trailerIndex = str.indexOf("ee") + 2;
+    dict         = bencode.decode( str );
+    trailer      = payload.slice(trailerIndex);
 
     let info   = bencode.encode(torrentFile.info);
     let result = [];
@@ -141,10 +147,10 @@ test("ut_metadata request WITH LARGE torrent info", (t) => {
 
   let ut_metadata = new UTmetadata(infoLength2, torrentFile2.infoHash, torrentFile2.info);
   ut_metadata.on("meta_r", (payload) => {
-    let str          = payload.toString(),
-        trailerIndex = str.indexOf("ee") + 2,
-        dict         = bencode.decode( str ),
-        trailer      = payload.slice(trailerIndex);
+    str          = payload.toString();
+    trailerIndex = str.indexOf("ee") + 2;
+    dict         = bencode.decode( str );
+    trailer      = payload.slice(trailerIndex);
 
     let info   = bencode.encode(torrentFile2.info);
     let result = [];
