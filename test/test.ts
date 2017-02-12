@@ -128,9 +128,8 @@ test("ut_metadata request WITH torrent info", (t) => {
 
     let inf   = bencode.encode(torrentFile.info);
     let rslt = [];
-    let size = 16384;
-    for (let j = 0; j < inf.length; j += size) {
-      rslt.push(inf.slice(j, j + size));
+    for (let j = 0; j < inf.length; j += (16383 + 1)) {
+      rslt.push(inf.slice(j, j + (16383 + 1)));
     }
     t.equal( JSON.stringify(dict), "{\"msg_type\":1,\"piece\":0}", "meta_r with torrent info - DICT");
     t.equal( trailer.toString(), rslt[0].toString(), "meta_r with torrent info - TRAILER");
