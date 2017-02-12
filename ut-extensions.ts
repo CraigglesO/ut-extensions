@@ -18,12 +18,14 @@ interface File {
   offset: number;
 }
 
+interface Info {
+  name:           string;
+  "piece length": number;
+  pieces:         Array<string>;
+}
+
 interface Torrent {
-  info: {
-    name:           string
-    "piece length": number
-    pieces:         Array<string>
-  };
+  info:            Info;
   name:            string;
   files:           Array<File>;
   length:          number;
@@ -36,24 +38,41 @@ interface Torrent {
 class UTmetadata extends EventEmitter {
   metaDataSize:  number;
   infoHash:      string;
+  torrentInfo:   Array<Buffer>;
   pieceHash:     Hash;
   piece_count:   number;
   next_piece:    number;
   pieces:        Array<Buffer>;
 
-  constructor (metaDataSize: number, infoHash: string) {
+  constructor (metaDataSize: number, infoHash: string, torrentInfo?: Info) {
     super();
     if (!(this instanceof UTmetadata))
-      return new UTmetadata(metaDataSize, infoHash);
+      return new UTmetadata(metaDataSize, infoHash, torrentInfo);
     const self = this;
 
     self.metaDataSize  = metaDataSize;
     self.infoHash      = infoHash;
+    self.torrentInfo   = (torrentInfo) ? self.parseInfo(torrentInfo) : null;
     self.pieceHash     = createHash("sha1");
     self.piece_count   = (self.metaDataSize) ? Math.ceil(metaDataSize / PACKET_SIZE) : 1;
     self.next_piece    = 0;
     self.pieces        = Array.apply(null, Array(self.piece_count));
 
+  }
+
+  parseInfo(torrentInfo: Info): Array<Buffer> {
+    let info   = bencode.encode(torrentInfo);
+    let result = [];
+    for (let i = 0; i < info.length; i += PACKET_SIZE) {
+      result.push(info.slice(i, i + PACKET_SIZE));
+    }
+    return result;
+  }
+
+  prepHandshake() {
+    let msg = { "m": { "ut_metadata": 3 }, "metadata_size": this.metaDataSize };
+    msg     = bencode.encode(msg);
+    return msg;
   }
 
   _message (payload: Buffer) {
@@ -66,6 +85,17 @@ class UTmetadata extends EventEmitter {
     switch (dict.msg_type) {
       case 0:
         // REQUEST {'msg_type': 0, 'piece': 0}
+        if (!self.torrentInfo) {
+          let msg = { "msg_type": 2, "piece": dict.piece };
+          msg     = bencode.encode(msg);
+          self.emit("meta_r", msg);
+        } else {
+          let msg     = { "msg_type": 1, "piece": dict.piece };
+          let msgBuf  = bencode.encode(msg);
+          let trailer = self.torrentInfo[dict.piece];
+          let buf     = Buffer.concat([msgBuf, trailer]);
+          self.emit("meta_r", buf);
+        }
         break;
       case 1:
         // RESPONCE {'msg_type': 1, 'piece': 0}
@@ -211,7 +241,7 @@ class UTpex extends EventEmitter {
       "added":    string2compact(self.added),
       "added.f":  Buffer.concat( self.added.map(() => { return new Buffer([0x02]); }) ),
       "added6":   string2compact(self.added6),
-      "added6.f": new Buffer(0),
+      "added6.f": Buffer.concat( self.added6.map(() => { return new Buffer([0x02]); }) ),
       "dropped":  string2compact(self.dropped),
       "dropped6": string2compact(self.dropped6)
     };

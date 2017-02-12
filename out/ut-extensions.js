@@ -4,23 +4,49 @@ const crypto_1 = require("crypto");
 const _ = require("lodash");
 const bencode = require("bencode"), compact2string = require("compact2string"), string2compact = require("string2compact"), PACKET_SIZE = 16384, UT_PEX = 1, UT_METADATA = 2;
 class UTmetadata extends events_1.EventEmitter {
-    constructor(metaDataSize, infoHash) {
+    constructor(metaDataSize, infoHash, torrentInfo) {
         super();
         if (!(this instanceof UTmetadata))
-            return new UTmetadata(metaDataSize, infoHash);
+            return new UTmetadata(metaDataSize, infoHash, torrentInfo);
         const self = this;
         self.metaDataSize = metaDataSize;
         self.infoHash = infoHash;
+        self.torrentInfo = (torrentInfo) ? self.parseInfo(torrentInfo) : null;
         self.pieceHash = crypto_1.createHash("sha1");
         self.piece_count = (self.metaDataSize) ? Math.ceil(metaDataSize / PACKET_SIZE) : 1;
         self.next_piece = 0;
         self.pieces = Array.apply(null, Array(self.piece_count));
+    }
+    parseInfo(torrentInfo) {
+        let info = bencode.encode(torrentInfo);
+        let result = [];
+        for (let i = 0; i < info.length; i += PACKET_SIZE) {
+            result.push(info.slice(i, i + PACKET_SIZE));
+        }
+        return result;
+    }
+    prepHandshake() {
+        let msg = { "m": { "ut_metadata": 3 }, "metadata_size": this.metaDataSize };
+        msg = bencode.encode(msg);
+        return msg;
     }
     _message(payload) {
         const self = this;
         let str = payload.toString(), trailerIndex = str.indexOf("ee") + 2, dict = bencode.decode(str), trailer = payload.slice(trailerIndex);
         switch (dict.msg_type) {
             case 0:
+                if (!self.torrentInfo) {
+                    let msg = { "msg_type": 2, "piece": dict.piece };
+                    msg = bencode.encode(msg);
+                    self.emit("meta_r", msg);
+                }
+                else {
+                    let msg = { "msg_type": 1, "piece": dict.piece };
+                    let msgBuf = bencode.encode(msg);
+                    let trailer = self.torrentInfo[dict.piece];
+                    let buf = Buffer.concat([msgBuf, trailer]);
+                    self.emit("meta_r", buf);
+                }
                 break;
             case 1:
                 self.pieces[dict.piece] = trailer;
@@ -118,7 +144,7 @@ class UTpex extends events_1.EventEmitter {
             "added": string2compact(self.added),
             "added.f": Buffer.concat(self.added.map(() => { return new Buffer([0x02]); })),
             "added6": string2compact(self.added6),
-            "added6.f": new Buffer(0),
+            "added6.f": Buffer.concat(self.added6.map(() => { return new Buffer([0x02]); })),
             "dropped": string2compact(self.dropped),
             "dropped6": string2compact(self.dropped6)
         };
