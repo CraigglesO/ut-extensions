@@ -31,9 +31,10 @@ test("ut_metadata receive", (t) => {
     t.plan(17);
     let ut_metadata = new ut_extensions_1.UTmetadata(infoLength, torrentFile.infoHash);
     ut_metadata.on("metadata", (tor) => {
+        let tip = tor.info.pieces.toString();
         t.equal(tor.info.name.toString(), torrentFile.info.name.toString(), "Check that the metadata is downloaded and parsed appropriately - info name");
         t.equal(tor.info["piece length"], torrentFile.info["piece length"], "Check that the metadata is downloaded and parsed appropriately - info piece length");
-        t.equal(tor.info.pieces.toString(), torrentFile.info.pieces.toString(), "Check that the metadata... - info pieces");
+        t.equal(tip, torrentFile.info.pieces.toString(), "Check that the metadata is downloaded and parsed appropriately - info pieces");
         t.equal(tor.name, torrentFile.name, "Check that the metadata is downloaded and parsed appropriately - name");
         t.equal(tor.files.length, torrentFile.files.length, "Check that the metadata is downloaded and parsed appropriately - file Length");
         t.equal(tor.files.path, torrentFile.files.path, "Check that the metadata is downloaded and parsed appropriately - file path");
