@@ -2,11 +2,11 @@
 const test = require("blue-tape");
 const ut_extensions_1 = require("../ut-extensions");
 const buffer_1 = require("buffer");
-const bencode = require("bencode"), string2compact = require("string2compact"), compact2string = require("compact2string"), parseTorrent = require('parse-torrent'), fs = require('fs');
+const bencode = require("bencode"), string2compact = require("string2compact"), compact2string = require("compact2string"), parseTorrent = require("parse-torrent"), fs = require("fs");
 const magnetLink = "magnet:?xt=urn:btih:74416fe776ca02ca2da20f686fed835e4dcfe84d&dn=Screen+Shot+2017-01-21+at+8.25.15+AM.png&tr=udp%3A%2F%2F0.0.0.0%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com";
-const torrent = fs.readFileSync('./screen.torrent');
+const torrent = fs.readFileSync("./screen.torrent");
 const torrentFile = parseTorrent(torrent);
-const torrent2 = fs.readFileSync('./ntbos.torrent');
+const torrent2 = fs.readFileSync("./ntbos.torrent");
 const torrentFile2 = parseTorrent(torrent2);
 const name = torrentFile.name;
 const nameBuf = buffer_1.Buffer.from(name);
