@@ -70,7 +70,7 @@ test("ut_metadata receive", (t) => {
   ut_metadata.on("metadata", (tor) => {
     t.equal(tor.info.name.toString(), torrentFile.info.name.toString(), "Check that the metadata is downloaded and parsed appropriately - info name");
     t.equal(tor.info["piece length"], torrentFile.info["piece length"], "Check that the metadata is downloaded and parsed appropriately - info piece length");
-    t.equal(tor.info.pieces.toString(), torrentFile.info.pieces.toString(), "Check that the metadata is downloaded and parsed appropriately - info pieces");
+    t.equal(tor.info.pieces.toString(), torrentFile.info.pieces.toString(), "Check that the metadata... - info pieces");
     t.equal(tor.name, torrentFile.name, "Check that the metadata is downloaded and parsed appropriately - name");
     t.equal(tor.files.length, torrentFile.files.length, "Check that the metadata is downloaded and parsed appropriately - file Length");
     t.equal(tor.files.path, torrentFile.files.path, "Check that the metadata is downloaded and parsed appropriately - file path");
@@ -128,8 +128,9 @@ test("ut_metadata request WITH torrent info", (t) => {
 
     let inf   = bencode.encode(torrentFile.info);
     let rslt = [];
-    for (let i = 0; i < inf.length; i += 16384) {
-      rslt.push(inf.slice(i, i + 16384));
+    let size = 16384;
+    for (let j = 0; j < inf.length; j += size) {
+      rslt.push(inf.slice(j, j + size));
     }
     t.equal( JSON.stringify(dict), "{\"msg_type\":1,\"piece\":0}", "meta_r with torrent info - DICT");
     t.equal( trailer.toString(), rslt[0].toString(), "meta_r with torrent info - TRAILER");
