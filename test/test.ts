@@ -126,13 +126,13 @@ test("ut_metadata request WITH torrent info", (t) => {
     dict         = bencode.decode( str );
     trailer      = payload.slice(trailerIndex);
 
-    let info   = bencode.encode(torrentFile.info);
-    let result = [];
-    for (let i = 0; i < info.length; i += 16384) {
-      result.push(info.slice(i, i + 16384));
+    let inf   = bencode.encode(torrentFile.info);
+    let rslt = [];
+    for (let i = 0; i < inf.length; i += 16384) {
+      rslt.push(inf.slice(i, i + 16384));
     }
     t.equal( JSON.stringify(dict), "{\"msg_type\":1,\"piece\":0}", "meta_r with torrent info - DICT");
-    t.equal( trailer.toString(), result[0].toString(), "meta_r with torrent info - TRAILER");
+    t.equal( trailer.toString(), rslt[0].toString(), "meta_r with torrent info - TRAILER");
   });
 
   t.equal(ut_metadata.torrentInfo.length, 1, "properly resize the torrentInfo array");
