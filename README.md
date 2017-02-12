@@ -33,7 +33,7 @@ new UTmetadata(metaDataSize: number, infoHash: string);
 * infoHash     - info_hash of the torrent to be downloaded
 
 ``` javascript
-import { UTmetadata } from "ut-extensions"
+import { UTmetadata } from "ut-extensions";
 
 // create a metadata instance
 const metadata = new UTmetadata(18716, "294150cb4beb7585d89d5faf447121fee5360d82");
@@ -46,8 +46,15 @@ metadata.on("metadata", (metadata) => {
 });
 
 metadata.on("next", (index) => {
-  //index specifies which metadata piece to request next
+  // index specifies which metadata piece to request next
 });
+
+metadata.on("meta_r", (payload) => {
+  // Buffer message to send back with the dictionary response and trailer
+});
+
+// Prepare metadata handshake buffer for incoming peers
+let buf = metadata.prepHandshake();
 
 ```
 
@@ -60,7 +67,7 @@ new UTpex();
 * no inputs
 
 ``` javascript
-import { UTpex } from "ut-extensions"
+import { UTpex } from "ut-extensions";
 
 // Create a pex instance
 const pex = new UTpex();
