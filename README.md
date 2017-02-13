@@ -100,6 +100,9 @@ pex.dropPeer6 (peers: Array<string>);
 // Prepare a message to send out
 let msg = prepMessage();
 
+// Add all options
+pex.addAll(addPeers: Array<string>, addPeers6: Array<string>, dropPeers: Array<string>, dropPeers6: Array<string>);
+
 ```
 
 ## ISC License (Open Source Initiative)
