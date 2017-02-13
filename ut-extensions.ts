@@ -209,6 +209,13 @@ class UTpex extends EventEmitter {
     this.emit(emitType, peers);
   }
 
+  addAll(addPeers: Array<string>, addPeers6: Array<string>, dropPeers: Array<string>, dropPeers6: Array<string>) {
+    this.added    = this.partition(this.added, addPeers);
+    this.added6   = this.partition(this.added6, addPeers6);
+    this.dropped  = this.partition(this.dropped, dropPeers);
+    this.dropped6 = this.partition(this.dropped6, dropPeers6);
+  }
+
   addPeer(peers: Array<string>) {
     this.added = this.partition(this.added, peers);
   }

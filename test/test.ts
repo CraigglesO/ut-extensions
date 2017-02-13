@@ -187,7 +187,7 @@ test("ut_metadata properly handle failure", (t) => {
 // UT_PEX TESTS
 
 test("UT_PEX tests", (t) => {
-  t.plan(4);
+  t.plan(6);
 
   let ut_pex = new UTpex();
 
@@ -200,6 +200,7 @@ test("UT_PEX tests", (t) => {
 
   ut_pex.on("pex_dropped", (peers) => {
     t.true( true, "testing pex_dropped responce");
+    t.equal(JSON.stringify(peers), JSON.stringify([ "111.56.58.99:28525", "60.156.3.75:2000" ]), "testing Canonical Peer Priority");
   });
 
   let peers = [
@@ -208,19 +209,81 @@ test("UT_PEX tests", (t) => {
     "65.156.3.75:2000"
   ];
 
+  let droppedPeers = [
+    "111.56.58.99:28525",
+    "60.156.3.75:2000"
+  ];
+
   let obj = {
     "added": string2compact(peers),
     "added.f": null,
     "added6": null,
     "added6.f": null,
-    "dropped": null,
+    "dropped": string2compact(droppedPeers),
     "dropped6": null
   };
 
   ut_pex.addPeer(["10.10.10.5:128"]);
   ut_pex.addPeer(["10.10.10.5:128"]);     // duplicate to test sureity of uniqueness
-  ut_pex.addPeer(["100.56.58.99:28525"]);
-  ut_pex.addPeer(["65.156.3.75:2000"]);
+  ut_pex.addPeer(["100.56.58.99:28525", "65.156.3.75:2000"]);
+
+  ut_pex.dropPeer(["111.56.58.99:28525", "60.156.3.75:2000"]);
+
+  let ben = bencode.encode(obj);
+
+  ut_pex._message(ben);
+
+  let msg = ut_pex.prepMessage();
+
+  let ben_msg = bencode.decode(msg);
+
+  t.equal(ben_msg["added.f"].toString("hex"), (new Buffer([0x02, 0x02, 0x02])).toString("hex"), "Correct added.f");
+
+  t.equal(ben_msg["added"].toString("hex"), string2compact(peers).toString("hex"), "Correct added");
+
+
+  t.end();
+});
+
+test("UT_PEX tests add all", (t) => {
+  t.plan(6);
+
+  let ut_pex = new UTpex();
+
+  ut_pex.myID("76.256.2.70:1337");
+
+  ut_pex.on("pex_added", (peers) => {
+    t.true( true, "testing pex_added responce");
+    t.equal(JSON.stringify(peers), JSON.stringify([ "65.156.3.75:2000", "100.56.58.99:28525", "10.10.10.5:128" ]), "testing Canonical Peer Priority");
+  });
+
+  ut_pex.on("pex_dropped", (peers) => {
+    t.true( true, "testing pex_dropped responce");
+    t.equal(JSON.stringify(peers), JSON.stringify([ "66.156.3.75:2000", "111.56.58.99:28525", "1.10.10.5:128" ]), "testing Canonical Peer Priority");
+  });
+
+  let peers = [
+    "10.10.10.5:128",
+    "100.56.58.99:28525",
+    "65.156.3.75:2000"
+  ];
+
+  let droppedPeers = [
+    "1.10.10.5:128",
+    "111.56.58.99:28525",
+    "66.156.3.75:2000"
+  ];
+
+  let obj = {
+    "added": string2compact(peers),
+    "added.f": null,
+    "added6": null,
+    "added6.f": null,
+    "dropped": string2compact(droppedPeers),
+    "dropped6": null
+  };
+
+  ut_pex.addAll(peers, null, droppedPeers, null);
 
 
   let ben = bencode.encode(obj);

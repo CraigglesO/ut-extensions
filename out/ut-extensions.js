@@ -115,6 +115,12 @@ class UTpex extends events_1.EventEmitter {
             peers = CanonicalPeerPriority(this.ID, peers);
         this.emit(emitType, peers);
     }
+    addAll(addPeers, addPeers6, dropPeers, dropPeers6) {
+        this.added = this.partition(this.added, addPeers);
+        this.added6 = this.partition(this.added6, addPeers6);
+        this.dropped = this.partition(this.dropped, dropPeers);
+        this.dropped6 = this.partition(this.dropped6, dropPeers6);
+    }
     addPeer(peers) {
         this.added = this.partition(this.added, peers);
     }
