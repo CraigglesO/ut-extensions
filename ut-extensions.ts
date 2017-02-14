@@ -3,7 +3,8 @@ import { Hash, createHash } from "crypto";
 import * as _               from "lodash";
 
 
-const bencode        = require("bencode"),
+const debug          = require("debug")("ut-extensions"),
+      bencode        = require("bencode"),
       compact2string = require("compact2string"),
       string2compact = require("string2compact"),
       PACKET_SIZE    = 16384,
@@ -36,6 +37,7 @@ interface Torrent {
 
 // BEP_0009
 class UTmetadata extends EventEmitter {
+  _debugId:      number;
   metaDataSize:  number;
   infoHash:      string;
   torrentInfo:   Array<Buffer>;
@@ -50,6 +52,8 @@ class UTmetadata extends EventEmitter {
       return new UTmetadata(metaDataSize, infoHash, torrentInfo);
     const self = this;
 
+    self._debugId = ~~((Math.random() * 100000) + 1);
+
     self.metaDataSize  = metaDataSize;
     self.infoHash      = infoHash;
     self.torrentInfo   = (torrentInfo) ? self.parseInfo(torrentInfo) : null;
@@ -58,6 +62,7 @@ class UTmetadata extends EventEmitter {
     self.next_piece    = 0;
     self.pieces        = Array.apply(null, Array(self.piece_count));
 
+    self._debug("UT_metadata instance created");
   }
 
   parseInfo(torrentInfo: Info): Array<Buffer> {
@@ -70,6 +75,7 @@ class UTmetadata extends EventEmitter {
   }
 
   prepHandshake() {
+    this._debug("prepare meta handshake");
     let msg = { "m": { "ut_metadata": 3 }, "metadata_size": this.metaDataSize };
     msg     = bencode.encode(msg);
     return msg;
@@ -85,6 +91,7 @@ class UTmetadata extends EventEmitter {
     switch (dict.msg_type) {
       case 0:
         // REQUEST {'msg_type': 0, 'piece': 0}
+        this._debug("Meta request recieved");
         if (!self.torrentInfo) {
           let msg = { "msg_type": 2, "piece": dict.piece };
           msg     = bencode.encode(msg);
@@ -99,6 +106,7 @@ class UTmetadata extends EventEmitter {
         break;
       case 1:
         // RESPONCE {'msg_type': 1, 'piece': 0}
+        this._debug("Meta responce recieved");
         self.pieces[dict.piece] = trailer;
         // update the hash
         self.pieceHash.update(trailer);
@@ -121,11 +129,17 @@ class UTmetadata extends EventEmitter {
         break;
       case 2:
         // REJECT {'msg_type': 2, 'piece': 0}
+        this._debug("Meta reject recieved");
         break;
       default:
 
     }
   }
+
+  _debug = (...args: any[]) => {
+    args[0] = "[META-" + this._debugId + "] " + args[0];
+    debug.apply(null, args);
+  };
 }
 
 // BEP_0011
@@ -155,6 +169,7 @@ interface Peers {
 }
 
 class UTpex extends EventEmitter {
+  _debugId: number;
   ID:       Array<string>;
   added:    Array<string>;
   added6:   Array<string>;
@@ -166,12 +181,15 @@ class UTpex extends EventEmitter {
       return new UTpex();
     const self = this;
 
-    self.ID     = null;
+    self._debugId = ~~((Math.random() * 100000) + 1);
+    self.ID       = null;
 
     self.added    = [];
     self.added6   = [];
     self.dropped  = [];
     self.dropped6 = [];
+
+    self._debug("UTpex instance created");
   }
 
   _message (payload: Buffer) {
@@ -184,16 +202,20 @@ class UTpex extends EventEmitter {
     }
 
     if (dict.added) {
+      this._debug("Pex recieved added");
       self.compactPeers("pex_added", dict.added);
     }
     if (dict.added6) {
+      this._debug("Pex recieved added6");
       self.compactPeers("pex_added6", dict.added6);
     }
 
     if (dict.dropped) {
+      this._debug("Pex recieved dropped");
       self.compactPeers("pex_dropped", dict.dropped);
     }
     if (dict.dropped6) {
+      this._debug("Pex recieved dropped6");
       self.compactPeers("pex_dropped6", dict.dropped6);
     }
   }
@@ -241,6 +263,7 @@ class UTpex extends EventEmitter {
   }
 
   prepMessage(): Peers {
+    this._debug("Pex prepare message");
     const self = this;
     let msg = {
       "added":    string2compact(self.added),
@@ -255,6 +278,11 @@ class UTpex extends EventEmitter {
 
     return ben;
   }
+
+  _debug = (...args: any[]) => {
+    args[0] = "[PEX-" + this._debugId + "] " + args[0];
+    debug.apply(null, args);
+  };
 }
 
 // BEP_0040

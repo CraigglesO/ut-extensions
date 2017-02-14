@@ -1,10 +1,11 @@
 {
   "name": "ut-extensions",
-  "version": "1.5.0",
+  "version": "1.7.0",
   "description": "Extensions for The Bittorent Protocol",
   "main": "./out/ut-extensions.js",
   "scripts": {
     "test": "echo running server tests... && cd test && ts-node ../node_modules/blue-tape/bin/blue-tape \"**/*.ts\" | tap-spec",
+    "test+debug": "echo running server tests... && cd test && DEBUG=\"ut-extensions\" ts-node ../node_modules/blue-tape/bin/blue-tape \"**/*.ts\" | tap-spec",
     "start": "npm run build:live",
     "build:live": "nodemon --exec ./node_modules/.bin/ts-node -- ./ut-extensions.ts",
     "build": "echo building... && typings bundle -o out/ut-extensions.d.ts",

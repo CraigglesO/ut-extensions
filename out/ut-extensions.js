@@ -2,13 +2,18 @@
 const events_1 = require("events");
 const crypto_1 = require("crypto");
 const _ = require("lodash");
-const bencode = require("bencode"), compact2string = require("compact2string"), string2compact = require("string2compact"), PACKET_SIZE = 16384, UT_PEX = 1, UT_METADATA = 2;
+const debug = require("debug")("ut-extensions"), bencode = require("bencode"), compact2string = require("compact2string"), string2compact = require("string2compact"), PACKET_SIZE = 16384, UT_PEX = 1, UT_METADATA = 2;
 class UTmetadata extends events_1.EventEmitter {
     constructor(metaDataSize, infoHash, torrentInfo) {
         super();
+        this._debug = (...args) => {
+            args[0] = "[META-" + this._debugId + "] " + args[0];
+            debug.apply(null, args);
+        };
         if (!(this instanceof UTmetadata))
             return new UTmetadata(metaDataSize, infoHash, torrentInfo);
         const self = this;
+        self._debugId = ~~((Math.random() * 100000) + 1);
         self.metaDataSize = metaDataSize;
         self.infoHash = infoHash;
         self.torrentInfo = (torrentInfo) ? self.parseInfo(torrentInfo) : null;
@@ -16,6 +21,7 @@ class UTmetadata extends events_1.EventEmitter {
         self.piece_count = (self.metaDataSize) ? Math.ceil(metaDataSize / PACKET_SIZE) : 1;
         self.next_piece = 0;
         self.pieces = Array.apply(null, Array(self.piece_count));
+        self._debug("UT_metadata instance created");
     }
     parseInfo(torrentInfo) {
         let info = bencode.encode(torrentInfo);
@@ -26,6 +32,7 @@ class UTmetadata extends events_1.EventEmitter {
         return result;
     }
     prepHandshake() {
+        this._debug("prepare meta handshake");
         let msg = { "m": { "ut_metadata": 3 }, "metadata_size": this.metaDataSize };
         msg = bencode.encode(msg);
         return msg;
@@ -35,6 +42,7 @@ class UTmetadata extends events_1.EventEmitter {
         let str = payload.toString(), trailerIndex = str.indexOf("ee") + 2, dict = bencode.decode(str), trailer = payload.slice(trailerIndex);
         switch (dict.msg_type) {
             case 0:
+                this._debug("Meta request recieved");
                 if (!self.torrentInfo) {
                     let msg = { "msg_type": 2, "piece": dict.piece };
                     msg = bencode.encode(msg);
@@ -49,6 +57,7 @@ class UTmetadata extends events_1.EventEmitter {
                 }
                 break;
             case 1:
+                this._debug("Meta responce recieved");
                 self.pieces[dict.piece] = trailer;
                 self.pieceHash.update(trailer);
                 if (++self.next_piece === self.piece_count) {
@@ -66,6 +75,7 @@ class UTmetadata extends events_1.EventEmitter {
                 }
                 break;
             case 2:
+                this._debug("Meta reject recieved");
                 break;
             default:
         }
@@ -75,14 +85,20 @@ exports.UTmetadata = UTmetadata;
 class UTpex extends events_1.EventEmitter {
     constructor() {
         super();
+        this._debug = (...args) => {
+            args[0] = "[PEX-" + this._debugId + "] " + args[0];
+            debug.apply(null, args);
+        };
         if (!(this instanceof UTpex))
             return new UTpex();
         const self = this;
+        self._debugId = ~~((Math.random() * 100000) + 1);
         self.ID = null;
         self.added = [];
         self.added6 = [];
         self.dropped = [];
         self.dropped6 = [];
+        self._debug("UTpex instance created");
     }
     _message(payload) {
         const self = this;
@@ -94,15 +110,19 @@ class UTpex extends events_1.EventEmitter {
             return;
         }
         if (dict.added) {
+            this._debug("Pex recieved added");
             self.compactPeers("pex_added", dict.added);
         }
         if (dict.added6) {
+            this._debug("Pex recieved added6");
             self.compactPeers("pex_added6", dict.added6);
         }
         if (dict.dropped) {
+            this._debug("Pex recieved dropped");
             self.compactPeers("pex_dropped", dict.dropped);
         }
         if (dict.dropped6) {
+            this._debug("Pex recieved dropped6");
             self.compactPeers("pex_dropped6", dict.dropped6);
         }
     }
@@ -142,6 +162,7 @@ class UTpex extends events_1.EventEmitter {
         return arr;
     }
     prepMessage() {
+        this._debug("Pex prepare message");
         const self = this;
         let msg = {
             "added": string2compact(self.added),
