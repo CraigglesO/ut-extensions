@@ -1,4 +1,4 @@
-# ut-extensions [![travis][travis-image]][travis-url] [![npm][npm-image]][npm-url] [![Code Climate](https://codeclimate.com/github/CraigglesO/ut-extensions/badges/gpa.svg)](https://codeclimate.com/github/CraigglesO/ut-extensions) [![downloads][downloads-image]][downloads-url]
+# ut-extensions [![travis][travis-image]][travis-url] [![npm][npm-image]][npm-url]  [![downloads][downloads-image]][downloads-url]
 
 [travis-image]: https://travis-ci.org/CraigglesO/ut-extensions.svg?branch=master
 [travis-url]: https://travis-ci.org/CraigglesO/ut-extensions
