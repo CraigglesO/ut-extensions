@@ -60,7 +60,7 @@ class UTmetadata extends events_1.EventEmitter {
                 this._debug("Meta responce recieved");
                 self.pieces[dict.piece] = trailer;
                 if (++self.next_piece === self.piece_count) {
-                    self.pieces.forEach((piece) => { self.pieceHash.update(trailer); });
+                    self.pieces.forEach((piece) => { self.pieceHash.update(piece); });
                     if (self.pieceHash.digest("hex") === self.infoHash) {
                         let torrent = parseMetaData(Buffer.concat(self.pieces));
                         self.emit("metadata", torrent);

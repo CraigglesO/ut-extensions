@@ -112,7 +112,7 @@ class UTmetadata extends EventEmitter {
         // Check that we have all the pieces
         if ( ++self.next_piece === self.piece_count ) {
           // update the hash
-          self.pieces.forEach((piece) => { self.pieceHash.update(trailer); });
+          self.pieces.forEach((piece) => { self.pieceHash.update(piece); });
           // Check that the hash matches the infoHash we started with
           if ( self.pieceHash.digest("hex") === self.infoHash ) {
             // Parse the metadata and send it off.
