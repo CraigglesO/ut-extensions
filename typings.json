@@ -2,7 +2,7 @@
   "name": "ut-extensions",
   "main": "ut-extensions.d.ts",
   "homepage": "",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "globalDevDependencies": {
     "node": "registry:env/node#6.0.0+20170119204930"
   },

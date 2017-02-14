@@ -63,7 +63,7 @@ let str          = null,
 // ut_metadata tests:
 
 test("ut_metadata receive", (t) => {
-  t.plan(17);
+  t.plan(18);
 
   let ut_metadata = new UTmetadata(infoLength, torrentFile.infoHash);
 
@@ -81,6 +81,7 @@ test("ut_metadata receive", (t) => {
     t.equal(tor.pieceLength, torrentFile.pieceLength, "Check that the metadata is downloaded and parsed appropriately - pieceLength");
     t.equal(tor.lastPieceLength, torrentFile.lastPieceLength, "Check that the metadata is downloaded and parsed appropriately - lastPieceLength");
     t.equal(JSON.stringify(tor.pieces), JSON.stringify(torrentFile.pieces), "Check that the metadata is downloaded and parsed appropriately - pieces");
+    t.equal(tor.info.toString(), torrentFile.info.toString(), "same info");
   });
 
   // Check object is ready to go...

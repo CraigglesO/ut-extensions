@@ -21,6 +21,7 @@ interface File {
 
 interface Info {
   name:           string;
+  length:         number;
   "piece length": number;
   pieces:         Array<string>;
 }
@@ -108,10 +109,10 @@ class UTmetadata extends EventEmitter {
         // RESPONCE {'msg_type': 1, 'piece': 0}
         this._debug("Meta responce recieved");
         self.pieces[dict.piece] = trailer;
-        // update the hash
-        self.pieceHash.update(trailer);
         // Check that we have all the pieces
         if ( ++self.next_piece === self.piece_count ) {
+          // update the hash
+          self.pieces.forEach((piece) => { self.pieceHash.update(trailer); });
           // Check that the hash matches the infoHash we started with
           if ( self.pieceHash.digest("hex") === self.infoHash ) {
             // Parse the metadata and send it off.
@@ -119,6 +120,7 @@ class UTmetadata extends EventEmitter {
             self.emit("metadata", torrent);
           } else {
             // Bad torrent data; try again
+            self.pieceHash  = createHash("sha1");
             self.next_piece = 0;
             self.emit("next", self.next_piece);
           }
@@ -139,7 +141,7 @@ class UTmetadata extends EventEmitter {
   _debug = (...args: any[]) => {
     args[0] = "[META-" + this._debugId + "] " + args[0];
     debug.apply(null, args);
-  };
+  }
 }
 
 // BEP_0011
@@ -282,7 +284,7 @@ class UTpex extends EventEmitter {
   _debug = (...args: any[]) => {
     args[0] = "[PEX-" + this._debugId + "] " + args[0];
     debug.apply(null, args);
-  };
+  }
 }
 
 // BEP_0040
@@ -304,11 +306,7 @@ function parseMetaData (data): Torrent {
   let t = bencode.decode(data);
 
   let torrent = {
-    info: {
-      "name": t.name,
-      "piece length": t["piece length"],
-      "pieces": t.pieces
-    },
+    info: t,
     "name": t.name.toString(),
     "files": [],
     "length": null,

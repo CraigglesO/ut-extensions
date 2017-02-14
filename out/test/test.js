@@ -28,7 +28,7 @@ const messageRben2 = bencode.encode(messageR2);
 const completeMessageR2 = buffer_1.Buffer.concat([messageRben2]);
 let str = null, trailerIndex = null, dict = null, trailer = null;
 test("ut_metadata receive", (t) => {
-    t.plan(17);
+    t.plan(18);
     let ut_metadata = new ut_extensions_1.UTmetadata(infoLength, torrentFile.infoHash);
     ut_metadata.on("metadata", (tor) => {
         let tip = tor.info.pieces.toString();
@@ -44,6 +44,7 @@ test("ut_metadata receive", (t) => {
         t.equal(tor.pieceLength, torrentFile.pieceLength, "Check that the metadata is downloaded and parsed appropriately - pieceLength");
         t.equal(tor.lastPieceLength, torrentFile.lastPieceLength, "Check that the metadata is downloaded and parsed appropriately - lastPieceLength");
         t.equal(JSON.stringify(tor.pieces), JSON.stringify(torrentFile.pieces), "Check that the metadata is downloaded and parsed appropriately - pieces");
+        t.equal(tor.info.toString(), torrentFile.info.toString(), "same info");
     });
     t.equal(ut_metadata.infoHash, torrentFile.infoHash, "checking proper variable storage");
     t.equal(ut_metadata.metaDataSize, infoLength, "checking proper variable storage");

@@ -59,13 +59,14 @@ class UTmetadata extends events_1.EventEmitter {
             case 1:
                 this._debug("Meta responce recieved");
                 self.pieces[dict.piece] = trailer;
-                self.pieceHash.update(trailer);
                 if (++self.next_piece === self.piece_count) {
+                    self.pieces.forEach((piece) => { self.pieceHash.update(trailer); });
                     if (self.pieceHash.digest("hex") === self.infoHash) {
                         let torrent = parseMetaData(Buffer.concat(self.pieces));
                         self.emit("metadata", torrent);
                     }
                     else {
+                        self.pieceHash = crypto_1.createHash("sha1");
                         self.next_piece = 0;
                         self.emit("next", self.next_piece);
                     }
@@ -192,11 +193,7 @@ function CanonicalPeerPriority(myID, peers) {
 function parseMetaData(data) {
     let t = bencode.decode(data);
     let torrent = {
-        info: {
-            "name": t.name,
-            "piece length": t["piece length"],
-            "pieces": t.pieces
-        },
+        info: t,
         "name": t.name.toString(),
         "files": [],
         "length": null,
