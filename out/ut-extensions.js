@@ -191,6 +191,7 @@ function CanonicalPeerPriority(myID, peers) {
     return result;
 }
 function parseMetaData(data) {
+    let infoHash = crypto_1.createHash("sha1").update(data).digest("hex");
     let t = bencode.decode(data);
     let torrent = {
         info: t,
@@ -199,7 +200,15 @@ function parseMetaData(data) {
         "length": null,
         "pieceLength": t["piece length"],
         "lastPieceLength": null,
-        "pieces": []
+        "pieces": [],
+        "urlList": [],
+        "infoBuffer": Buffer.from(t),
+        "announce": ["udp://tracker.empire-js.us:1337", "udp://tracker.openbittorrent.com:80", "udp://tracker.leechers-paradise.org:6969", "udp://tracker.coppersurfer.tk:6969", "udp://tracker.opentrackr.org:1337", "udp://explodie.org:6969", "udp://zer0day.ch:1337"],
+        "created": new Date(),
+        "createdBy": "Empire/vParrot",
+        "private": false,
+        "infoHash": infoHash,
+        "infoHashBuffer": Buffer.from(infoHash)
     };
     let length = 0;
     if (t.files) {
