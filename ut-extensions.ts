@@ -24,6 +24,7 @@ interface Info {
   length:         number;
   "piece length": number;
   pieces:         Array<string>;
+  private:        boolean;
 }
 
 interface Torrent {
@@ -301,7 +302,7 @@ function CanonicalPeerPriority (myID: Array<string>, peers: Array<string>): Arra
   return result;
 }
 
-function parseMetaData (data): Torrent {
+function parseMetaData (data: Buffer): Torrent {
   let infoHash = createHash("sha1").update(data).digest("hex");
   let t        = bencode.decode(data);
 
@@ -314,7 +315,7 @@ function parseMetaData (data): Torrent {
     "lastPieceLength": null,
     "pieces": [],
     "urlList":         [],
-    "infoBuffer":      Buffer.from(t),
+    "infoBuffer":      data,
     "announce":        ["udp://tracker.empire-js.us:1337", "udp://tracker.openbittorrent.com:80", "udp://tracker.leechers-paradise.org:6969", "udp://tracker.coppersurfer.tk:6969", "udp://tracker.opentrackr.org:1337", "udp://explodie.org:6969", "udp://zer0day.ch:1337"],
     "created":         new Date(),
     "createdBy":       "Empire/vParrot",

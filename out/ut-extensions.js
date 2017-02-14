@@ -202,7 +202,7 @@ function parseMetaData(data) {
         "lastPieceLength": null,
         "pieces": [],
         "urlList": [],
-        "infoBuffer": Buffer.from(t),
+        "infoBuffer": data,
         "announce": ["udp://tracker.empire-js.us:1337", "udp://tracker.openbittorrent.com:80", "udp://tracker.leechers-paradise.org:6969", "udp://tracker.coppersurfer.tk:6969", "udp://tracker.opentrackr.org:1337", "udp://explodie.org:6969", "udp://zer0day.ch:1337"],
         "created": new Date(),
         "createdBy": "Empire/vParrot",
