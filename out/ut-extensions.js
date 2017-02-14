@@ -2,6 +2,7 @@
 const events_1 = require("events");
 const crypto_1 = require("crypto");
 const _ = require("lodash");
+const torrent_parser_1 = require("torrent-parser");
 const debug = require("debug")("ut-extensions"), bencode = require("bencode"), compact2string = require("compact2string"), string2compact = require("string2compact"), PACKET_SIZE = 16384, UT_PEX = 1, UT_METADATA = 2;
 class UTmetadata extends events_1.EventEmitter {
     constructor(metaDataSize, infoHash, torrentInfo) {
@@ -62,7 +63,7 @@ class UTmetadata extends events_1.EventEmitter {
                 if (++self.next_piece === self.piece_count) {
                     self.pieces.forEach((piece) => { self.pieceHash.update(piece); });
                     if (self.pieceHash.digest("hex") === self.infoHash) {
-                        let torrent = parseMetaData(Buffer.concat(self.pieces));
+                        let torrent = torrent_parser_1.parseInfo(Buffer.concat(self.pieces));
                         self.emit("metadata", torrent);
                     }
                     else {
@@ -189,54 +190,4 @@ function CanonicalPeerPriority(myID, peers) {
     let sorted = Object.keys(obj).sort(function (a, b) { return obj[a] - obj[b]; });
     sorted.forEach((peer) => { result.push(peer); });
     return result;
-}
-function parseMetaData(data) {
-    let infoHash = crypto_1.createHash("sha1").update(data).digest("hex");
-    let t = bencode.decode(data);
-    let torrent = {
-        info: t,
-        "name": t.name.toString(),
-        "files": [],
-        "length": null,
-        "pieceLength": t["piece length"],
-        "lastPieceLength": null,
-        "pieces": [],
-        "urlList": [],
-        "infoBuffer": data,
-        "announce": ["udp://tracker.empire-js.us:1337", "udp://tracker.openbittorrent.com:80", "udp://tracker.leechers-paradise.org:6969", "udp://tracker.coppersurfer.tk:6969", "udp://tracker.opentrackr.org:1337", "udp://explodie.org:6969", "udp://zer0day.ch:1337"],
-        "created": new Date(),
-        "createdBy": "Empire/vParrot",
-        "private": false,
-        "infoHash": infoHash,
-        "infoHashBuffer": Buffer.from(infoHash)
-    };
-    let length = 0;
-    if (t.files) {
-        torrent.files = t.files;
-        let o = 0;
-        torrent.files = torrent.files.map((file) => {
-            length += file.length;
-            file.path = file.path.toString();
-            file.offset = o;
-            o += file.length;
-            return file;
-        });
-        torrent.length = length;
-    }
-    else {
-        torrent.files = [{
-                length: t.length,
-                path: torrent.name,
-                name: torrent.name,
-                offset: 0
-            }];
-        torrent.length = t.length;
-    }
-    torrent.lastPieceLength = torrent.length % torrent.pieceLength;
-    let piece = t.pieces.toString("hex");
-    for (let i = 0; i < piece.length; i += 40) {
-        let p = piece.substring(i, i + 40);
-        torrent.pieces.push(p);
-    }
-    return torrent;
 }

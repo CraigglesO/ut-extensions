@@ -1,6 +1,7 @@
 import { EventEmitter }     from "events";
 import { Hash, createHash } from "crypto";
 import * as _               from "lodash";
+import { parseInfo }        from "torrent-parser";
 
 
 const debug          = require("debug")("ut-extensions"),
@@ -13,28 +14,36 @@ const debug          = require("debug")("ut-extensions"),
 
 
 interface File {
-  path:   string;
-  name:   string;
-  length: number;
-  offset: number;
+  "path":   string;
+  "name":   string;
+  "length": number;
+  "offset": number;
 }
 
 interface Info {
-  name:           string;
-  length:         number;
-  "piece length": number;
-  pieces:         Array<string>;
-  private:        boolean;
+  "length":        number;
+  "name":          Buffer;
+  "piece length":  number;
+  "pieces":        Buffer;
+  "private":       number;
 }
 
 interface Torrent {
-  info:            Info;
-  name:            string;
-  files:           Array<File>;
-  length:          number;
-  pieceLength:     number;
-  lastPieceLength: number;
-  pieces:          Array<string>;
+  "info":            Info;
+  "infoBuffer":      Buffer;
+  "infoHash":        string;
+  "infoHashBuffer":  Buffer;
+  "name":            string;
+  "private":         boolean;
+  "creation date":   any;
+  "created by":      string;
+  "announce":        Array<string>;
+  "urlList":         Array<string>;
+  "files":           Array<File> | File;
+  "length":          number;
+  "pieceLength":     number;
+  "lastPieceLength": number;
+  "pieces":          Array<string>;
 }
 
 // BEP_0009
@@ -117,7 +126,7 @@ class UTmetadata extends EventEmitter {
           // Check that the hash matches the infoHash we started with
           if ( self.pieceHash.digest("hex") === self.infoHash ) {
             // Parse the metadata and send it off.
-            let torrent = parseMetaData( Buffer.concat(self.pieces) );
+            let torrent = parseInfo( Buffer.concat(self.pieces) );
             self.emit("metadata", torrent);
           } else {
             // Bad torrent data; try again
@@ -300,62 +309,6 @@ function CanonicalPeerPriority (myID: Array<string>, peers: Array<string>): Arra
   let sorted = Object.keys(obj).sort( function(a, b) { return obj[a] - obj[b]; });
   sorted.forEach((peer) => { result.push(peer); });
   return result;
-}
-
-function parseMetaData (data: Buffer): Torrent {
-  let infoHash = createHash("sha1").update(data).digest("hex");
-  let t        = bencode.decode(data);
-
-  let torrent  = {
-    info:              t,
-    "name":            t.name.toString(),
-    "files":           [],
-    "length":          null,
-    "pieceLength":     t["piece length"],
-    "lastPieceLength": null,
-    "pieces": [],
-    "urlList":         [],
-    "infoBuffer":      data,
-    "announce":        ["udp://tracker.empire-js.us:1337", "udp://tracker.openbittorrent.com:80", "udp://tracker.leechers-paradise.org:6969", "udp://tracker.coppersurfer.tk:6969", "udp://tracker.opentrackr.org:1337", "udp://explodie.org:6969", "udp://zer0day.ch:1337"],
-    "created":         new Date(),
-    "createdBy":       "Empire/vParrot",
-    "private":         false,
-    "infoHash":        infoHash,
-    "infoHashBuffer":  Buffer.from(infoHash)
-  };
-
-  // Files:
-  let length = 0;
-  if (t.files) {
-    torrent.files = t.files;
-    let o         = 0;
-    torrent.files = torrent.files.map((file) => {
-      length     += file.length;
-      file.path   = file.path.toString();
-      file.offset = o;
-      o          += file.length;
-      return file;
-    });
-    torrent.length = length;
-  } else {
-    torrent.files = [{
-      length: t.length,
-      path:   torrent.name,
-      name:   torrent.name,
-      offset: 0
-    }];
-    torrent.length = t.length;
-  }
-  torrent.lastPieceLength = torrent.length % torrent.pieceLength;
-
-  // Pieces:
-  let piece = t.pieces.toString("hex");
-  for (let i = 0; i < piece.length; i += 40) {
-    let p = piece.substring(i, i + 40);
-    torrent.pieces.push(p);
-  }
-
-  return torrent;
 }
 
 export { UTmetadata, UTpex }
