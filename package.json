@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.52",
-    "bencode": "^0.12.0",
+    "bencode": "^2.0.0",
     "compact2string": "^1.4.0",
     "string2compact": "^1.2.2",
     "torrent-parser": "^1.0.5"
