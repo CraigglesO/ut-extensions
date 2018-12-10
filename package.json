@@ -28,7 +28,7 @@
   "devDependencies": {
     "@types/node": "^8.0.0",
     "blue-tape": "^1.0.0",
-    "nodemon": "^1.11.0",
+    "nodemon": "^1.18.8",
     "onchange": "^3.2.1",
     "parse-torrent": "^5.8.1",
     "tap-spec": "^4.1.1",
